@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++   -std=c++14 -fPIC -g -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX12.3.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names  CMakeFiles/SBIGDriver.dir/main.cpp.o  -o SBIGDriver  -Wl,-rpath,/usr/local/lib /usr/local/lib/libdlapi.dylib /usr/local/lib/libcfitsio.a -lm -lcurl 

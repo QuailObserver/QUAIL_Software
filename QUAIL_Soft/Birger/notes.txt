@@ -1,0 +1,168 @@
+Birger Ring Shenanigans:
+/Users/observer/Desktop/dlapi-sdk-macOS_1.3.5-0/focuser
+Port:
+/dev/cu.usbserial-FT2HLMFD
+Device Serial Number: 
+18366
+cd /Users/observer/Desktop/dlapi-sdk-macOS_1.3.5-0/focuser/
+cd /Users/observer/Desktop/Backup/ProjectDragonfly-master/focuser/
+To initialize Birger:
+./birger -p /dev/cu.usbserial-FT2HLMFD
+./birger -p /dev/cu.usbserial-FT2HLANS
+
+./birger -p /dev/cu.usbserial-FT2HLMFD init
+
+./birger -p /dev/cu.usbserial-FT2HLMFD status
+
+./birger -p /dev/cu.usbserial-FT2HLMFD goto 10000
+
+The lens has to be in AutoFocus. ManualFocus prevents the Birger Ring from moving the lens.
+
+To find our what port it is on
+ls /dev/tty.usb*
+To permanently set ports
+export BIRGER_SERIAL_PORT=/dev/cu.usbserial-FT2HLMFD
+
+./ExposureSettings 2 2 0 0 3.0 1 0 0 0
+./ExposureSettings 1 1 0 0 10.0 1 0 0 0 0 0 0
+./ExposureSettings 1 2 0 0 3.0 1 0 0 0
+
+
+
+./ExposureSettings 1 1 0 0 1 1 3.0 1 0 0 0
+
+./ExposureSettings 1 1 0 0 2 2 3.0 1 0 0 0
+
+
+Worked (yes deprecated):
+./ExposureSettings 2 2 0 0 1 1 3.0 1 0 0 0 
+Taking 1092x736, 2x2 binned, 3 s, Light frame.
+
+Worked (yes deprecated):
+./ExposureSettings 2 2 0 0 2 2 3.0 1 0 0 0 
+Taking 1092x736, 2x2 binned, 3 s, Light frame.
+
+Worked (no deprecated):
+./ExposureSettings 2 2 0 0 3.0 1 0 0 0 
+Taking 1092x736, 2x2 binned, 3 s, Light frame.
+
+Deprecated parameter makes no difference?
+'2', '2', '0', '0', '3', '1', '0', '0', '0'
+
+
+# Camera Queue In
+        self.Camera_Queue_In = queue.Queue()
+        # Camera Queue Out
+        self.Camera_Queue_Out = queue.Queue()
+
+#include "dlapi.h"
+#include <chrono>
+#include <iostream>
+#include <thread>
+#include <cinttypes>
+using namespace dl;
+using namespace std::chrono_literals;
+std::string getSerial(ICameraPtr pCamera)
+{
+	char buf[512] = {0};
+	size_t blng = 512;
+	pCamera->getSerial(&(buf[0]), blng);
+	return std::string(&(buf[0]), blng);
+}
+void handlePromise(IPromisePtr pPromise)
+{
+	auto result = pPromise->wait();
+	if (result != IPromise::Complete)
+	{
+		char b[512] = {0};
+		size_t l = 512;
+		pPromise->getLastError(&(b[0]), l);
+		pPromise->release();
+		throw std::logic_error(std::string(&(b[0]), l));
+	}
+}
+int main() 
+{
+	auto pGateway = getGateway();
+	try
+	{
+		pGateway->queryUSBCameras();
+		auto camCount = pGateway->getUSBCameraCount();
+		if (camCount <= 0)
+		{
+			std::cout << "No USB cameras found" << std::endl;
+			return 1;
+		}
+		auto pCamera = pGateway->getUSBCamera(0);
+		if (camCount == 1)
+		{
+			auto pCamera = pGateway->getUSBCamera(0);
+			if (!pCamera)
+			{
+			std::cout << "Camera could not be retrieved from Gateway" << std::endl;
+			return 1;
+			}
+			auto serial  = getSerial(pCamera);
+			auto pSensor = pCamera->getSensor(0);
+			if (!pSensor)
+			{
+				std::cout << "Sensor could not be retrieved from Camera" << std::endl;
+				return 1;
+			}
+			ICamera::Status status;
+			handlePromise(pCamera->queryStatus());
+			status = pCamera->getStatus();
+			std::cout << "Sensor Temperature: " << status.sensorTemperature << "\n";
+		}
+
+		auto pSensor = pCamera->getSensor(0);
+		if (!pSensor)
+		{
+			std::cout << "Sensor could not be retrieved from Camera" << std::endl;
+			return 1;
+		}
+		handlePromise(pSensor->abortExposure());
+		// Sensor Settings
+		pSensor->querySetting(dl::ISensor::AutoFanMode);
+		pSensor->querySetting(dl::ISensor::EnableStatusLED);
+		pSensor->querySetting(dl::ISensor::FanSpeed);
+		pSensor->querySetting(dl::ISensor::UseOverscan);
+		pSensor->querySetting(dl::ISensor::UseOnChipBinning);
+		pSensor->querySetting(dl::ISensor::UseWindowHeater);
+		pSensor->querySetting(dl::ISensor::UseExtTrigger);
+		pSensor->querySetting(dl::ISensor::ToggleIRLEDs);
+		auto getsettings = pSensor->getSettings();									// Check Settings
+		bool autofanmode = pSensor->getSetting(dl::ISensor::AutoFanMode);
+		std::cout << "Auto Fan Mode: " << autofanmode << "\n";			// Check if AutoFanSpeed is on
+		std::cout << "Status LED: " << getsettings.enableStatusLED<<"\n";			// Check if the Status Led is on
+		std::cout << "Fan Speed: " << getsettings.fanSpeed<<"\n";			// Check if the Status Led is on
+		std::cout << "Use Overscan: " << getsettings.useOverscan << "\n";
+		std::cout << "Use On Chip Binning: " << getsettings.useOnChipBinning << "\n";
+		std::cout << "Use Window Heater: " << getsettings.useWindowHeater << "\n";
+		std::cout << "Use External Trigger: " << getsettings.useExtTrigger << "\n";
+		std::cout << "Toggle IR LEDs: " << getsettings.enableIRLEDs << "\n";
+		// Temperature controls		
+		ICamera::Status status;
+		handlePromise(pCamera->queryStatus());
+		status = pCamera->getStatus();
+		bool getenabled = (status.coolerPower>0);
+		std::cout << "Temperature Control Enabled/Disabled: " << getenabled << "\n";
+		auto pITEC = pCamera->getTEC();              									// Creates Handle for TEC stuff 	   		
+		float setpoint = pITEC->getSetpoint();											// Gets current setpoint
+		std::cout << "Setpoint: " << setpoint << "\n";
+		std::cout << "Sensor Temperature: " << status.sensorTemperature << "\n";
+		std::cout << "Cooler Power:  " << status.coolerPower << "\n"; 
+		std::cout << "Heat Sink Temperature:  " << status.heatSinkTemperature << "\n"; 
+	}
+	catch(const std::exception& e)
+	{
+		std::cerr << e.what() << '\n';
+	}
+	
+	deleteGateway(pGateway);
+	return 0;
+}
+http://astronomy.nmsu.edu/nicole/teaching/ASTR505/lectures/
+
+
+150 0 0 0 0 0 0 1 0

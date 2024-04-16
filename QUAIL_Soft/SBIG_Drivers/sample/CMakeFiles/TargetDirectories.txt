@@ -1,0 +1,3 @@
+/Users/observer/desktop/QUAIL_Soft/SBIG_Drivers/sample/CMakeFiles/rebuild_cache.dir
+/Users/observer/desktop/QUAIL_Soft/SBIG_Drivers/sample/CMakeFiles/edit_cache.dir
+/Users/observer/desktop/QUAIL_Soft/SBIG_Drivers/sample/CMakeFiles/SBIGDriver.dir
