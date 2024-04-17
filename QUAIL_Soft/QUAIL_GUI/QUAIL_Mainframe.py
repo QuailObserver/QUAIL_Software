@@ -1567,23 +1567,15 @@ class Camera_Options(Frame):
         return self.overscan_1
 
     def Overscan_Checkbutton_State_2(self):
-        current_state = self.user_overscan_2.get()
-        if current_state == 1:
-            self.Overscan_Checkbutton_2['text'] = "On"
-            self.Overscan_Checkbutton_2['borderwidth'] = 3
-            self.Overscan_Checkbutton_2['foreground'] = '#FF3864'
-            self.Overscan_Checkbutton_2['relief'] = 'sunken'
+        if self.overscan_2 == 0:
+            self.overscan_2 = 1
+        elif self.overscan_2 == 1:
+            self.overscan_2 = 0
         else:
-            self.Overscan_Checkbutton_2['text'] = "Off"
-            self.Overscan_Checkbutton_2['borderwidth'] = 3
-            self.Overscan_Checkbutton_2['foreground'] = '#FF9999'
-            self.Overscan_Checkbutton_2['relief'] = 'flat'
+            pass
+        return self.overscan_2
 
     def Window_Heater_Checkbutton_State_1(self):
-        print('width Overscan_Checkbutton_1', self.Overscan_Checkbutton_1.winfo_width())
-        print('height Overscan_Checkbutton_1', self.Overscan_Checkbutton_1.winfo_height())
-        print('width Window_Heater_Checkbutton_1', self.Window_Heater_Checkbutton_1.winfo_width())
-        print('height Window_Heater_Checkbutton_1', self.Window_Heater_Checkbutton_1.winfo_height())
         if self.window_heater_1 == 0:
             self.window_heater_1 = 1
         elif self.window_heater_1 == 1:
@@ -1593,17 +1585,13 @@ class Camera_Options(Frame):
         return self.window_heater_1    
         
     def Window_Heater_Checkbutton_State_2(self):
-        current_state = self.user_window_heater_2.get()
-        if current_state == 1:
-            self.Window_Heater_Checkbutton_2['text'] = "On"
-            self.Window_Heater_Checkbutton_2['borderwidth'] = 3
-            self.Window_Heater_Checkbutton_2['foreground'] = '#FF3864'
-            self.Window_Heater_Checkbutton_2['relief'] = 'sunken'
+        if self.window_heater_2 == 0:
+            self.window_heater_2 = 1
+        elif self.window_heater_2 == 1:
+            self.window_heater_2 = 0
         else:
-            self.Window_Heater_Checkbutton_2['text'] = "Off"
-            self.Window_Heater_Checkbutton_2['borderwidth'] = 3
-            self.Window_Heater_Checkbutton_2['foreground'] = '#FF9999'
-            self.Window_Heater_Checkbutton_2['relief'] = 'flat'
+            pass
+        return self.window_heater_2 
 
 
     def Epoch_Checkbutton_State_2000(self):
